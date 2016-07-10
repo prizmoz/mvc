@@ -1,23 +1,13 @@
 <?php
-
 class Router{
-
     protected static $_instance = null;
-
-    private static $uri;
-
-    private static $controller;
-
-    private static $action;
-
-    private static $params;
-
-    private static $route;
-
-    private static $method_prefix;
-
-    private static $language;
-
+    protected $uri;
+    protected $controller;
+    protected $action;
+    protected $params;
+    protected $route;
+    protected $method_prefix;
+    protected $language;
 
     private function __clone() {}
     private function __construct() {}
@@ -25,109 +15,161 @@ class Router{
     /**
      * @return mixed
      */
-    public static function getUri()
+    public function getUri()
     {
-        return self::$uri;
+        return $this->uri;
+    }
+
+    /**
+     * @param mixed $uri
+     */
+    public function setUri($uri)
+    {
+        $this->uri = $uri;
     }
 
     /**
      * @return mixed
      */
-    public static function getController()
+    public function getController()
     {
-        return self::$controller;
+        return $this->controller;
+    }
+
+    /**
+     * @param mixed $controller
+     */
+    public function setController($controller)
+    {
+        $this->controller = $controller;
     }
 
     /**
      * @return mixed
      */
-    public static function getAction()
+    public function getParams()
     {
-        return self::$action;
+        return $this->params;
+    }
+
+    /**
+     * @param mixed $params
+     */
+    public function setParams($params)
+    {
+        $this->params = $params;
     }
 
     /**
      * @return mixed
      */
-    public static function getParams()
+    public function getAction()
     {
-        return self::$params;
+        return $this->action;
+    }
+
+    /**
+     * @param mixed $action
+     */
+    public function setAction($action)
+    {
+        $this->action = $action;
     }
 
     /**
      * @return mixed
      */
-    public static function getRoute()
+    public function getRoute()
     {
-        return self::$route;
+        return $this->route;
+    }
+
+    /**
+     * @param mixed $route
+     */
+    public function setRoute($route)
+    {
+        $this->route = $route;
     }
 
     /**
      * @return mixed
      */
-    public static function getMethodPrefix()
+    public function getMethodPrefix()
     {
-        return self::$method_prefix;
+        return $this->method_prefix;
+    }
+
+    /**
+     * @param mixed $method_prefix
+     */
+    public function setMethodPrefix($method_prefix)
+    {
+        $this->method_prefix = $method_prefix;
     }
 
     /**
      * @return mixed
      */
-    public static function getLanguage()
+    public function getLanguage()
     {
-        return self::$language;
+        return $this->language;
     }
 
+    /**
+     * @param mixed $language
+     */
+    public function setLanguage($language)
+    {
+        $this->language = $language;
+    }
 
-    public static function getInstance($uri){
+    public static function getInstance()
+    {
         if (null === self::$_instance) {
             self::$_instance = new self();
+            return self::$_instance;
+        } else {
+            return self::$_instance;
         }
-        
-        self::$uri = urldecode(trim($uri, '/'));
-
+    }
+    
+    public function parseURL($uri)
+    {
+        self::$_instance->setUri(urldecode(trim($uri, '/')));
         // Get defaults
         $routes = Config::get('routes');
-        self::$route = Config::get('default_route');
-        self::$method_prefix = isset($routes[self::$route]) ? $routes[self::$route] : '';
-        self::$language = Config::get('default_language');
-        self::$controller = Config::get('default_controller');
-        self::$action = Config::get('default_action');
-
-        $uri_parts = explode('?', self::$uri);
-
+        self::$_instance->setRoute(Config::get('default_route'));
+        self::$_instance->setMethodPrefix(isset($routes[self::$_instance->getRoute()]) ? $routes[self::$_instance->getRoute()] : '');
+        self::$_instance->setLanguage(Config::get('default_language'));
+        self::$_instance->setController(Config::get('default_controller'));
+        self::$_instance->setAction(Config::get('default_action'));
+        $uri_parts = explode('?', self::$_instance->getUri());
         // Get path like /lng/controller/action/param1/param2/.../...
         $path = $uri_parts[0];
-
         $path_parts = explode('/', $path);
-
         if ( count($path_parts) ){
-
             // Get route or language at first element
             if ( in_array(strtolower(current($path_parts)), array_keys($routes)) ){
-                self::$route = strtolower(current($path_parts));
-                self::$method_prefix = isset($routes[self::$route]) ? $routes[self::$route] : '';
+                self::$_instance->setRout(strtolower(current($path_parts)));
+                self::$_instance->setMethodPrefix(isset($routes[self::$_instance->getRoute()]) ? $routes[self::$_instance->getRoute()] : '');
                 array_shift($path_parts);
             } elseif ( in_array(strtolower(current($path_parts)), Config::get('languages')) ){
-                self::$language = strtolower(current($path_parts));
+                self::$_instance->setLanguage(strtolower(current($path_parts)));
                 array_shift($path_parts);
             }
             // Get controller - next element of array
             if ( current($path_parts) ){
-                self::$controller = strtolower(current($path_parts));
+                self::$_instance->setController(strtolower(current($path_parts)));
                 array_shift($path_parts);
             }
             // Get action
             if ( current($path_parts) ){
-                self::$action = strtolower(current($path_parts));
+                self::$_instance->setAction(strtolower(current($path_parts)));
                 array_shift($path_parts);
             }
-
             // Get params - all the rest
-            self::$params = $path_parts;
-
+            self::$_instance->setParams($path_parts);
         }
-
     }
-
 }
